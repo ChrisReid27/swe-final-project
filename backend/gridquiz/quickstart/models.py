@@ -44,11 +44,50 @@ class Questions(models.Model):
 	value = models.PositiveIntegerField(validators=[MaxValueValidator(5)], choices=VALUE_CHOICES)
 	question_text = models.CharField(max_length=300)
 	answer_text = models.CharField(max_length=50)
-#class Leaderboard(models.Model):
-#	GameBoard
-#
-#class Leaderboard_Entry(models.Model):
-#
-#class User(models.Model):
-#
-#class History(models.Model):	
+
+	# reference to the gameboard so that each gameboard can have 25 questions
+	gameboard = models.ManyToManyField(GameBoard, related_name="questions")
+  
+class Leaderboard(models.Model):
+	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+	gameboard = models.OneToOneField(
+		GameBoard,
+		on_delete=models.CASCADE,
+		related_name="leaderboard"
+	)
+
+class Leaderboard_Entry(models.Model):
+	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+	
+	leaderboard = models.ForeignKey(
+		Leaderboard,
+		on_delete=models.CASCADE,
+		related_name="leaderboard"
+	)
+
+	user = models.ForeignKey(
+		User,
+		on_delete=models.CASCADE,
+		related_name="leaderboard_entries"
+	)
+
+	history = models.ForeignKey(
+		History,
+		on_delete=models.CASCADE,
+		related_name="leaderboard_entries"
+	)
+
+class User(models.Model):
+	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+	username = models.CharField(max_length=30)
+
+class History(models.Model):
+	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+	user = models.ForeignKey(
+		User,
+		on_delete=models.CASCADE,
+		related_name="user"
+	)	
