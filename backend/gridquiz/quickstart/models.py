@@ -8,7 +8,7 @@ from django.db import models
 
 User = get_user_model()
 
-class GameBoard(models.Model):
+class Gameboard(models.Model):
 	"""
 	A single board instance.
 	Stores the grid (of question references), leaderboard reference
@@ -20,7 +20,7 @@ class GameBoard(models.Model):
 	
 	date_created = models.DateTimeField(auto_now_add=True)
 
-class Questions(models.Model):
+class Question(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 	CATEGORY_CHOICES = [
@@ -52,13 +52,16 @@ class Leaderboard(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 	gameboard = models.OneToOneField(
-		GameBoard,
+		Gameboard,
 		on_delete=models.CASCADE,
 		related_name="leaderboard"
 	)
 
-class Leaderboard_Entry(models.Model):
+class LeaderboardEntry(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+	score = models.IntegerField()
+	time_taken = models.DurationField()
 	
 	leaderboard = models.ForeignKey(
 		Leaderboard,
@@ -83,7 +86,7 @@ class User(models.Model):
 
 	username = models.CharField(max_length=30)
 
-class History(models.Model):
+class History(models.Model): # might also need a history entry OR history might not be needed because we can query the database based on user, sorted by time
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 	user = models.ForeignKey(
