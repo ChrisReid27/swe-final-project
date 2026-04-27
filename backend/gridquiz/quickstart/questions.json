@@ -1,0 +1,34 @@
+{
+	"questions" : [
+		{
+			"category": "movies"
+			"value": 200
+			"question": "Who is the voice actor for Barry B. Benson in the Bee Movie?"
+			"answer": "Jerry Seinfield"
+		},
+		{
+			"category": "music"
+			"value" : 100
+			"question": "Who sings California Gurls?"
+			"answer" : "Katy Perry"
+		},	
+		{
+			"category": "sports"
+			"value" : 100
+			"question": "Who won the 2026 Superbowl?"
+			"answer" : "Seattle Seahawks"
+		},
+		{
+			"category": "tv"
+			"value" : 100
+			"question": "What is the first and last name of the main character of The Office?"
+			"answer" : "Michael Scott"
+		},
+		{
+			"category": "celebrity"
+			"value" : 100
+			"question": "Who famously lost their diamond earrings off the coast of Bora Bora?"
+			"answer" : "Kim Kardashian"
+		}
+	]
+}

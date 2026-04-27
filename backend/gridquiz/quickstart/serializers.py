@@ -2,19 +2,11 @@ from __future__ import annotations
 
 from rest_framework import serializers
 
-from .models import Gameboard, Question, Leaderboard, LeaderboardEntry, History
+from .models import Gameboard, Leaderboard, LeaderboardEntry, History
 
 from django.contrib.auth import get_user_model
 # import the current User as well
 User = get_user_model()
-
-class HistorySerializer(serializers.ModelSerializer):
-	entries = LeaderboardEntrySerializer(read_only=True, many=True)
-	class Meta:
-		fields = (
-			"id",
-			"entries"
-		)
 
 class UserSerializer(serializers.ModelSerializer):
 	history = HistorySerializer(read_only=True)
@@ -22,22 +14,6 @@ class UserSerializer(serializers.ModelSerializer):
 		model = User
 		fields = ("id", "username", "email", "history")
 		read_only_fields = ("id", "username", "email", "history") # store email in order to use firebase auth
-
-class QuestionSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = Question
-		fields = (
-			"category",
-			"value",
-			"question_text",
-			"answer_text",
-		)
-		read_only_fields = (
-			"category",
-			"value",
-			"question_text",
-			"answer_text",
-		)
 
 class LeaderboardEntrySerializer(serializers.ModelSerializer):
 	user = UserSerializer(read_only=True)
@@ -66,6 +42,21 @@ class LeaderboardSerializer(serializers.ModelSerializer):
 		)
 		read_only_fields = (
 			"id",
+		)
+
+class QuestionSerializer(serializers.ModelSerializer):
+	class Meta:
+		fields = (
+			"category",
+			"value",
+			"question_text",
+			"answer_text",
+		)
+		read_only_fields = (	
+			"category",
+			"value",
+			"question_text",
+			"answer_text",
 		)
 
 class GameboardSerializer(serializers.ModelSerializer):
