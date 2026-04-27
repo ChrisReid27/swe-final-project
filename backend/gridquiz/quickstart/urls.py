@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-	CreateNewGameboardView,
+	CreateGameboardView,
 	HistoryView,
 	GameboardByIdView,
 	GameboardByBoardCodeView,
@@ -22,14 +22,14 @@ urlpatterns = [
 
 	# Get game by boardcode
 	# Example: GET /game/{boardcode}
-	path("game/<string:code>", GameboardByBoardCodeView.as_view(), name="gameboard_boardcode-detail"),
+	path("game/<int:board_code>", GameboardByBoardCodeView.as_view(), name="gameboard_boardcode-detail"),
 
 	# Retrieve or submit leaderboard entries
 	# GET /games/{uuid}/leaderboard/
 	# POST /games/{uuid}/leaderboard/
 	path(
 		"games/<uuid:id>/leaderboard/",
-		GameboardLeaderboardView.as_view(),
+		LeaderboardView.as_view(),
 		name="game-leaderboard",
 	),
 ]

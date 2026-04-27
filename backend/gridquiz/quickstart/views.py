@@ -11,9 +11,15 @@ from rest_framework.views import APIView
 from django.contrib.staticfiles import finders
 
 # import models and serializers
-from .models import Gameboard, 
+from .models import Gameboard, Leaderboard, LeaderboardEntry, Question, User
 
 from .serializers import (
+	UserSerializer, 
+	LeaderboardEntrySerializer, 
+	LeaderboardSerializer, 
+	QuestionSerializer, 
+	GameboardSerializer,	
+)
 
 User = get_user_model()
 
@@ -33,34 +39,33 @@ class CreateGameboardView(APIView):
 
 	def get(self, request):
 		try:
-			with transaction.atomic()
+			with transaction.atomic():
 
-			questions = Questions.objects.all()
-			board = createNewBoard(questions)
+				questions = Questions.objects.all()
+				board = createNewBoard(questions)
 
-			game_name = f"Gameboard:{now.strftime('%Y-%m-%d %H:%M:%S')}"
-			# create gameboard
-			new_gameboard = Gameboard.objects.create(
-				name=game_name,
-				board_code=,
-			)
-			# link all of the questions to the board
-			for question in board:
-				question.gameboards.add(new_gameboard)
-			# create leaderboard
-			leaderboard = Leaderboard.objects.create(
-				gameboard=new_gameboard 
-			)
+				game_name = f"Gameboard:{now.strftime('%Y-%m-%d %H:%M:%S')}"
+				# create gameboard
+				new_gameboard = Gameboard.objects.create(
+					name=game_name,
+				)
+				# link all of the questions to the board
+				for question in board:
+					question.gameboards.add(new_gameboard)
+				# create leaderboard
+				leaderboard = Leaderboard.objects.create(
+					gameboard=new_gameboard 
+				)
 	
-		return Response(
-				GameSerializer(new_gameboard).data,
-				status=status.HTTP_201_CREATED,
-		)
-	except Exception as e:
-		return Response(
-			{"detail": f"Game creation failed: {str(e)}"},
-			status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-		)
+				return Response(
+					GameSerializer(new_gameboard).data,
+					status=status.HTTP_201_CREATED,
+				)
+		except Exception as e:
+			return Response(
+				{"detail": f"Game creation failed: {str(e)}"},
+				status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+			)
 
 class HistoryView(APIView):
 	"""
@@ -69,11 +74,11 @@ class HistoryView(APIView):
 	"""
 	permission_classes = [AllowAny]
 
-	def get(self, request, user_id):
-		try:
-			with transaction.atomic():
-				my_user = get_object_or_404(User, id=user_id)
-				entries = LeaderboardEntry.objects.get(user=my_user)
+	def get(self, request, id):
+		
+		my_user = get_object_or_404(User, id=id)
+		entries = LeaderboardEntry.objects.get(user=my_user)
+		
 		return Response(
 			LeaderboardEntrySerializer(entries).data,
 			status=status.HTTP_200_OK
@@ -96,8 +101,8 @@ class GameboardByBoardCodeView(APIView):
 	"""
 	GET /games/boardcode/{boardcode}
 	"""
-	def get(self, request, boardcode):
-		gameboard = Gameboard.objects.get(boardcode=boardcode)
+	def get(self, request, board_code):
+		gameboard = Gameboard.objects.get(board_code=board_code)
 		return Response(
 			GameboardSerializer(gameboard).data,
 			status=status.HTTP_200_OK
@@ -136,20 +141,20 @@ class LeaderboardView(APIView):
 
 		# find user
 		if request.user and request.user.is_authenticated:
-            user = request.user
-        else:
-            user_id = serializer.validated_data.pop("user_id")
-            user = get_object_or_404(User, id=user_id)
+			user = request.user
+		else:
+			user_id = serializer.validated_data.pop("user_id")
+			user = get_object_or_404(User, id=user_id)
 
-        entry = LeaderboardEntry.objects.create(
-            leaderboard=leaderboard,
-            user=user,
-            score=serializer.validated_data.get("score", 0),
-            total_time_seconds=serializer.validated_data.get("total_time_seconds", 0),
-        )
+		entry = LeaderboardEntry.objects.create(
+			leaderboard=leaderboard,
+			user=user,
+			score=serializer.validated_data.get("score", 0),
+			total_time_seconds=serializer.validated_data.get("total_time_seconds", 0),
+		)
 
-        return Response(
-            LeaderboardEntrySerializer(entry).data,
-            status=status.HTTP_201_CREATED,
-        )
+		return Response(
+			LeaderboardEntrySerializer(entry).data,
+			status=status.HTTP_201_CREATED,
+		)
 

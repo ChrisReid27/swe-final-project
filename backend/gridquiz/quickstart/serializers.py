@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from rest_framework import serializers
 
-from .models import Gameboard, Leaderboard, LeaderboardEntry, History
+from .models import Gameboard, Leaderboard, LeaderboardEntry, Question, User 
 
 from django.contrib.auth import get_user_model
 # import the current User as well
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
-	history = HistorySerializer(read_only=True)
 	class Meta:
 		model = User
 		fields = ("id", "username", "email", "history")
@@ -64,18 +63,16 @@ class GameboardSerializer(serializers.ModelSerializer):
 	leaderboard = LeaderboardSerializer(read_only=True)
 	
 	class Meta:
-		model = GameBoard
+		model = Gameboard
 		fields = (
-			"id",
+			"board_code",
 			"name",
-			"boardcode",
 			"date_created",
 			"questions",
 		)
 		read_only_fields = (
-			"id",
+			"board_code",
 			"name",
-			"boardcode",
 			"date_created",
 			"questions",
 		)	

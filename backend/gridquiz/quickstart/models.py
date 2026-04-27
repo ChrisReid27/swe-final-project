@@ -13,10 +13,8 @@ class Gameboard(models.Model):
 	A single board instance.
 	Stores the grid (of question references), leaderboard reference
 	"""
-
-	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) 
+	board_code = models.AutoField(primary_key=True, editable=False)
 	name = models.CharField(max_length=200)
-	board_code = models.CharField(max_length=20, unique=True) # board code is limited to 20 characters and must be unique
 	
   
 class Leaderboard(models.Model):
@@ -53,7 +51,7 @@ class Question(models.Model):
 	question_text = models.CharField(max_length=500)
 	answer_text = models.CharField(max_length=100)
 
-	gameboards = models.ManyToManyKey(			# do not need a related name because we shouldn't query the gameboards by questions
+	gameboards = models.ManyToManyField(			# do not need a related name because we shouldn't query the gameboards by questions
 		Gameboard
 	)	
 
