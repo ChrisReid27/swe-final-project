@@ -3,7 +3,7 @@ from .views import (
 	CreateGameboardView,
 	HistoryView,
 	GameboardByIdView,
-	GameboardByBoardCodeView,
+	# GameboardByBoardCodeView,
 	LeaderboardView,
 )
 
@@ -14,21 +14,21 @@ urlpatterns = [
 	
 	# Get history of a user by id
 	# Example: GET /history/{user:id}
-	path("history/<uuid:id>/", HistoryView.as_view(), name="get-history-by-user-id"),
+	path("history/", HistoryView.as_view(), name="get-history-of-current-user"),
 
 	# Get game by id
 	# Example: GET /game/{id}
-	path("game/<uuid:id>/", GameboardByIdView.as_view(), name="gameboard-detail"),
+	# path("game/<uuid:id>/", GameboardByIdView.as_view(), name="gameboard-detail"),
 
 	# Get game by boardcode
 	# Example: GET /game/{boardcode}
-	path("game/<int:board_code>", GameboardByBoardCodeView.as_view(), name="gameboard_boardcode-detail"),
+	path("game/<int:board_code>", GameboardByIdView.as_view(), name="gameboard_boardcode-detail"),
 
 	# Retrieve or submit leaderboard entries
 	# GET /games/{uuid}/leaderboard/
 	# POST /games/{uuid}/leaderboard/
 	path(
-		"games/<uuid:id>/leaderboard/",
+		"games/<int:board_code>/leaderboard/",
 		LeaderboardView.as_view(),
 		name="game-leaderboard",
 	),

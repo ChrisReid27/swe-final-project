@@ -17,6 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
 class LeaderboardEntrySerializer(serializers.ModelSerializer):
 	user = UserSerializer(read_only=True)
 	class Meta:
+		model = LeaderboardEntry
 		fields = (
 			"id",
 			"leaderboard",
@@ -45,6 +46,7 @@ class LeaderboardSerializer(serializers.ModelSerializer):
 
 class QuestionSerializer(serializers.ModelSerializer):
 	class Meta:
+		model = Question
 		fields = (
 			"category",
 			"value",
@@ -69,6 +71,7 @@ class GameboardSerializer(serializers.ModelSerializer):
 			"name",
 			"date_created",
 			"questions",
+			"leaderboard",
 		)
 		read_only_fields = (
 			"board_code",

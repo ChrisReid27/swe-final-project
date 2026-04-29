@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator
 from django.db import models
 
+import datetime
+
 User = get_user_model()
 
 class Gameboard(models.Model):
@@ -15,6 +17,7 @@ class Gameboard(models.Model):
 	"""
 	board_code = models.AutoField(primary_key=True, editable=False)
 	name = models.CharField(max_length=200)
+	date_created = models.DateTimeField(default=datetime.datetime.min)
 	
   
 class Leaderboard(models.Model):
@@ -51,8 +54,11 @@ class Question(models.Model):
 	question_text = models.CharField(max_length=500)
 	answer_text = models.CharField(max_length=100)
 
-	gameboards = models.ManyToManyField(			# do not need a related name because we shouldn't query the gameboards by questions
-		Gameboard
+	howard = models.BooleanField(default=False)
+
+	gameboards = models.ManyToManyField(
+		Gameboard,
+		related_name='questions'
 	)	
 
 

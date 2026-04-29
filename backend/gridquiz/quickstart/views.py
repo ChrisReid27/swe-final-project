@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -33,7 +35,7 @@ class CreateGameboardView(APIView):
 	Creates and stores a game with
 		-a grid of random questions sorted by the categories
 		-leaderboard
-		-boardcode
+		-board_code
 	"""
 	permission_classes = [AllowAny]
 
@@ -41,13 +43,14 @@ class CreateGameboardView(APIView):
 		try:
 			with transaction.atomic():
 
-				questions = Questions.objects.all()
+				questions = Question.objects.all()
 				board = createNewBoard(questions)
 
-				game_name = f"Gameboard:{now.strftime('%Y-%m-%d %H:%M:%S')}"
+				game_name = f"Gameboard:{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
 				# create gameboard
 				new_gameboard = Gameboard.objects.create(
 					name=game_name,
+					date_created=datetime.now()
 				)
 				# link all of the questions to the board
 				for question in board:
@@ -58,7 +61,7 @@ class CreateGameboardView(APIView):
 				)
 	
 				return Response(
-					GameSerializer(new_gameboard).data,
+					GameboardSerializer(new_gameboard).data,
 					status=status.HTTP_201_CREATED,
 				)
 		except Exception as e:
@@ -69,37 +72,46 @@ class CreateGameboardView(APIView):
 
 class HistoryView(APIView):
 	"""
-	GET /user/{user_id}
-	Gets the all of the games that the user has played (leaderboard entries) sorted by date
+	GET /history/
+	Gets the all of the games that the current user has played (leaderboard entries) sorted by date
 	"""
 	permission_classes = [AllowAny]
 
-	def get(self, request, id):
-		
-		my_user = get_object_or_404(User, id=id)
-		entries = LeaderboardEntry.objects.get(user=my_user)
+	def get(self, request):
+
+		serializer = UserSerializer(
+			data = {**request.data, "user_id" : str(
+
+		user = None
+		if request.user and request.user.is_authenticated:
+			user = request.user
+		else:
+			user_id = UserSerializer.validated_data.pop("user_id")
+			user = get_object_or_404(User, id=user_id)
+		entries = LeaderboardEntry.objects.get(user=user)
 		
 		return Response(
 			LeaderboardEntrySerializer(entries).data,
 			status=status.HTTP_200_OK
 		)
 
+"""
 class GameboardByIdView(APIView):
-	"""
-	GET /games/{id}
-	"""
-	def get(self, request, id):
-		gameboard = get_object_or_404(Gameboard, id=id)
+"""
+#	GET /game/{id}
+"""
+	def get(self, request, board_code):
+		gameboard = get_object_or_404(Gameboard, board_code=id)
 		return Response(
 			GameboardSerializer(gameboard).data,
 			status=status.HTTP_200_OK
 		)
-		
+"""		
 
 
-class GameboardByBoardCodeView(APIView):
+class GameboardByIdView(APIView):
 	"""
-	GET /games/boardcode/{boardcode}
+	GET /game/{board_code}
 	"""
 	def get(self, request, board_code):
 		gameboard = Gameboard.objects.get(board_code=board_code)
@@ -110,11 +122,11 @@ class GameboardByBoardCodeView(APIView):
 
 class LeaderboardView(APIView):
 	"""
-	GET /games/{id}/leaderboard
-	POST /games/{id}/leaderboard
+	GET /game/{board_code}/leaderboard
+	POST /game/{board_code}/leaderboard
 	"""
-	def get(self, request, id):
-		gameboard = get_object_or_404(Gameboard, id=id)
+	def get(self, request, board_code):
+		gameboard = get_object_or_404(Gameboard, board_code=board_code)
 		leaderboard = getattr(gameboard, "leaderboard", None)
 
 		if leaderboard is None:
@@ -124,8 +136,8 @@ class LeaderboardView(APIView):
 		
 		return Response(LeaderboardSerializer(leaderboard).data)
 
-	def post(self, request, id):
-		gameboard = get_object_or_404(Gameboard, id=id)
+	def post(self, request, board_code):
+		gameboard = get_object_or_404(Gameboard, board_code=board_code)
 		leaderboard = getattr(gameboard, "leaderboard", None)
 
 		if leaderboard is None:
