@@ -1,19 +1,17 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from django.contrib.staticfiles import finders
-
 # import models and serializers
-from .models import Gameboard, Leaderboard, LeaderboardEntry, Question, User
+from .models import Gameboard, Leaderboard, LeaderboardEntry, Question
 
 from .serializers import (
 	UserSerializer, 
@@ -50,7 +48,7 @@ class CreateGameboardView(APIView):
 				# create gameboard
 				new_gameboard = Gameboard.objects.create(
 					name=game_name,
-					date_created=datetime.now()
+					date_created=timezone.now()
 				)
 				# link all of the questions to the board
 				for question in board:
@@ -78,35 +76,22 @@ class HistoryView(APIView):
 	permission_classes = [AllowAny]
 
 	def get(self, request):
-
-		serializer = UserSerializer(
-			data = {**request.data, "user_id" : str(
-
-		user = None
-		if request.user and request.user.is_authenticated:
-			user = request.user
-		else:
-			user_id = UserSerializer.validated_data.pop("user_id")
+		user = request.user if request.user and request.user.is_authenticated else None
+		if user is None:
+			user_id = request.query_params.get("user_id")
+			if not user_id:
+				return Response(
+					{"detail": "user_id is required when not authenticated."},
+					status=status.HTTP_400_BAD_REQUEST,
+				)
 			user = get_object_or_404(User, id=user_id)
-		entries = LeaderboardEntry.objects.get(user=user)
+
+		entries = LeaderboardEntry.objects.filter(user=user).select_related("leaderboard", "leaderboard__gameboard")
 		
 		return Response(
-			LeaderboardEntrySerializer(entries).data,
+			LeaderboardEntrySerializer(entries, many=True).data,
 			status=status.HTTP_200_OK
 		)
-
-"""
-class GameboardByIdView(APIView):
-"""
-#	GET /game/{id}
-"""
-	def get(self, request, board_code):
-		gameboard = get_object_or_404(Gameboard, board_code=id)
-		return Response(
-			GameboardSerializer(gameboard).data,
-			status=status.HTTP_200_OK
-		)
-"""		
 
 
 class GameboardByIdView(APIView):
@@ -114,7 +99,7 @@ class GameboardByIdView(APIView):
 	GET /game/{board_code}
 	"""
 	def get(self, request, board_code):
-		gameboard = Gameboard.objects.get(board_code=board_code)
+		gameboard = get_object_or_404(Gameboard, board_code=board_code)
 		return Response(
 			GameboardSerializer(gameboard).data,
 			status=status.HTTP_200_OK
@@ -145,24 +130,28 @@ class LeaderboardView(APIView):
 				gameboard=gameboard
 			)
 		
-		serializer = LeaderboardEntrySerializer(
-			data={**request.data, "leaderboard": str(leaderboard.id)},
-			context={"request": request},
-		)
+		payload = {**request.data, "leaderboard": str(leaderboard.id)}
+		serializer = LeaderboardEntrySerializer(data=payload, context={"request": request})
 		serializer.is_valid(raise_exception=True)
 
 		# find user
 		if request.user and request.user.is_authenticated:
 			user = request.user
 		else:
-			user_id = serializer.validated_data.pop("user_id")
+			user_id = request.data.get("user_id")
+			if not user_id:
+				return Response(
+					{"detail": "user_id is required when not authenticated."},
+					status=status.HTTP_400_BAD_REQUEST,
+				)
 			user = get_object_or_404(User, id=user_id)
 
+		time_taken = serializer.validated_data.get("time_taken", timedelta())
 		entry = LeaderboardEntry.objects.create(
 			leaderboard=leaderboard,
 			user=user,
 			score=serializer.validated_data.get("score", 0),
-			total_time_seconds=serializer.validated_data.get("total_time_seconds", 0),
+			time_taken=time_taken,
 		)
 
 		return Response(
