@@ -115,7 +115,6 @@ class LeaderboardView(APIView):
 			leaderboard = Leaderboard.objects.create(
 				gameboard=gameboard
 			)
-			leaderboard.gameboard.add(gameboard)
 		
 		return Response(LeaderboardSerializer(leaderboard).data)
 
@@ -128,7 +127,6 @@ class LeaderboardView(APIView):
 			leaderboard = Leaderboard.objects.create(
 				gameboard=gameboard
 			)
-			leaderboard.gameboard.add(gameboard)
 		
 		payload = {**request.data, "leaderboard": str(leaderboard.id)}
 		serializer = LeaderboardEntrySerializer(data=payload, context={"request": request})
