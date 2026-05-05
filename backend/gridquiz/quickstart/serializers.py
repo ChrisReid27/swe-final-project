@@ -1,6 +1,6 @@
 from __future__ import annotations 
 from rest_framework import serializers 
-from .models import Gameboard, Leaderboard, LeaderboardEntry, Question, User 
+from .models import Gameboard, Leaderboard, LeaderboardEntry, Question 
 from django.contrib.auth import get_user_model # import the current User as well 
 User = get_user_model()
 

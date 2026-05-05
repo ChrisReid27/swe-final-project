@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -10,10 +9,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from django.contrib.staticfiles import finders
-
 # import models and serializers
-from .models import Gameboard, Leaderboard, LeaderboardEntry, Question, User
+from .models import Gameboard, Leaderboard, LeaderboardEntry, Question
 
 from .serializers import (
 	UserSerializer, 
@@ -51,7 +48,7 @@ class CreateGameboardView(APIView):
 				# create gameboard
 				new_gameboard = Gameboard.objects.create(
 					name=game_name,
-					date_created=datetime.now()
+					date_created=timezone.now()
 				)
 				# link all of the questions to the board
 				for question in board:

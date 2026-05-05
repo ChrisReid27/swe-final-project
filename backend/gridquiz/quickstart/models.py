@@ -1,12 +1,9 @@
 from __future__ import annotations
 
 import uuid
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.validators import MaxValueValidator
 from django.db import models
-
-import datetime
+from django.utils import timezone
 
 from django.contrib.auth.models import User
 
@@ -17,7 +14,7 @@ class Gameboard(models.Model):
 	"""
 	board_code = models.AutoField(primary_key=True, editable=False)
 	name = models.CharField(max_length=200)
-	date_created = models.DateTimeField(default=datetime.datetime.min)
+	date_created = models.DateTimeField(default=timezone.now)
 	
   
 class Leaderboard(models.Model):
