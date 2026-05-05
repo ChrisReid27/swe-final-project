@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -26,6 +26,7 @@ User = get_user_model()
 # import other scripts
 from .randomBoard import *
 
+import uuid
 
 class CreateGameboardView(APIView):
 	"""
@@ -73,26 +74,21 @@ class HistoryView(APIView):
 	GET /history/
 	Gets the all of the games that the current user has played (leaderboard entries) sorted by date
 	"""
-	permission_classes = [AllowAny]
 
 	def get(self, request):
-		user = request.user if request.user and request.user.is_authenticated else None
-		if user is None:
-			user_id = request.query_params.get("user_id")
-			if not user_id:
-				return Response(
-					{"detail": "user_id is required when not authenticated."},
-					status=status.HTTP_400_BAD_REQUEST,
-				)
-			user = get_object_or_404(User, id=user_id)
 
-		entries = LeaderboardEntry.objects.filter(user=user).select_related("leaderboard", "leaderboard__gameboard")
+		user = None
+		if request.user and request.user.is_authenticated:
+			user = request.user
+		else:
+			user_id = UserSerializer.validated_data.pop("id")
+			user = get_object_or_404(User, id=user_id)
+		entries = LeaderboardEntry.objects.filter(user=user)
 		
 		return Response(
 			LeaderboardEntrySerializer(entries, many=True).data,
 			status=status.HTTP_200_OK
 		)
-
 
 class GameboardByIdView(APIView):
 	"""
@@ -110,6 +106,7 @@ class LeaderboardView(APIView):
 	GET /game/{board_code}/leaderboard
 	POST /game/{board_code}/leaderboard
 	"""
+
 	def get(self, request, board_code):
 		gameboard = get_object_or_404(Gameboard, board_code=board_code)
 		leaderboard = getattr(gameboard, "leaderboard", None)
@@ -118,17 +115,20 @@ class LeaderboardView(APIView):
 			leaderboard = Leaderboard.objects.create(
 				gameboard=gameboard
 			)
+			leaderboard.gameboard.add(gameboard)
 		
 		return Response(LeaderboardSerializer(leaderboard).data)
 
 	def post(self, request, board_code):
 		gameboard = get_object_or_404(Gameboard, board_code=board_code)
 		leaderboard = getattr(gameboard, "leaderboard", None)
+	
 
 		if leaderboard is None:
 			leaderboard = Leaderboard.objects.create(
 				gameboard=gameboard
 			)
+			leaderboard.gameboard.add(gameboard)
 		
 		payload = {**request.data, "leaderboard": str(leaderboard.id)}
 		serializer = LeaderboardEntrySerializer(data=payload, context={"request": request})
@@ -151,11 +151,13 @@ class LeaderboardView(APIView):
 			leaderboard=leaderboard,
 			user=user,
 			score=serializer.validated_data.get("score", 0),
-			time_taken=time_taken,
+			time_taken=serializer.validated_data.get("time_taken", 0),
 		)
 
+		entry.leaderboard.add(leaderboard)
+
 		return Response(
-			LeaderboardEntrySerializer(entry).data,
+			LeaderboardSerializer(leaderboard).data,
 			status=status.HTTP_201_CREATED,
 		)
 

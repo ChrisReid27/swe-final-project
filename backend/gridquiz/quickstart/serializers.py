@@ -1,52 +1,40 @@
-from __future__ import annotations
-
-from datetime import timedelta
-
-from django.contrib.auth import get_user_model
-from rest_framework import serializers
-
-from .models import Gameboard, Leaderboard, LeaderboardEntry, Question
-
+from __future__ import annotations 
+from rest_framework import serializers 
+from .models import Gameboard, Leaderboard, LeaderboardEntry, Question 
+from django.contrib.auth import get_user_model # import the current User as well 
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
 		fields = ("id", "username", "email")
-		read_only_fields = fields
+		read_only_fields = ("id", "username", "email") 
 
 class LeaderboardEntrySerializer(serializers.ModelSerializer):
 	user = UserSerializer(read_only=True)
 	class Meta:
 		model = LeaderboardEntry
 		fields = (
-			"id",
-			"leaderboard",
 			"user",
 			"score",
-			"time_taken",
+ 			"time_taken",
 		)
-		read_only_fields = (
-			"id",
+	def create(self, data):
+		leaderboard_entry = LeaderboardEntry.objects.create(
+			user=User.objects.get(id=data['id']),
+			score=data['score'],
+			time_taken=data['time_taken']
 		)
-
-	def create(self, validated_data):
-		time_taken = validated_data.get("time_taken")
-		if isinstance(time_taken, int):
-			validated_data["time_taken"] = timedelta(seconds=time_taken)
-		return super().create(validated_data)
-
+		return leaderboard_entry
 
 class LeaderboardSerializer(serializers.ModelSerializer):
-	entries = LeaderboardEntrySerializer(many=True, read_only=True)
+	leaderboard_entries = LeaderboardEntrySerializer(many=True, read_only=True)
 	class Meta:
 		model = Leaderboard
 		fields = (
-			"id",
 			"gameboard",
-			"entries",
+			"leaderboard_entries",
 		)
-		read_only_fields = ("id", "gameboard", "entries")
 
 class QuestionSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -63,7 +51,6 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class GameboardSerializer(serializers.ModelSerializer):
 	questions = QuestionSerializer(many=True, read_only=True)
-	leaderboard = LeaderboardSerializer(read_only=True)
 	
 	class Meta:
 		model = Gameboard
@@ -72,7 +59,6 @@ class GameboardSerializer(serializers.ModelSerializer):
 			"name",
 			"date_created",
 			"questions",
-			"leaderboard",
 		)
 		read_only_fields = (
 			"board_code",

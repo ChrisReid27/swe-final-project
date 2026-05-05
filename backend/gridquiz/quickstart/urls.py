@@ -28,7 +28,7 @@ urlpatterns = [
 	# GET /games/{uuid}/leaderboard/
 	# POST /games/{uuid}/leaderboard/
 	path(
-		"games/<int:board_code>/leaderboard/",
+		"game/<int:board_code>/leaderboard/",
 		LeaderboardView.as_view(),
 		name="game-leaderboard",
 	),

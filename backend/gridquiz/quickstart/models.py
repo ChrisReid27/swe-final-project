@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 
-User = get_user_model()
+from django.contrib.auth.models import User
 
 class Gameboard(models.Model):
 	"""
@@ -30,12 +30,12 @@ class LeaderboardEntry(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
 	score = models.IntegerField()
-	time_taken = models.DurationField()
+	time_taken = models.IntegerField()
 	
 	leaderboard = models.ForeignKey(
 		Leaderboard,
 		on_delete=models.CASCADE,
-		related_name="entries"
+		related_name="leaderboard_entries"
 	)
 
 	user = models.ForeignKey(
