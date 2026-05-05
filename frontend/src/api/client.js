@@ -34,11 +34,11 @@ export function getGameboard(boardCode) {
 }
 
 export function getLeaderboard(boardCode) {
-  return request(`/games/${boardCode}/leaderboard/`);
+  return request(`/game/${boardCode}/leaderboard/`);
 }
 
 export function submitLeaderboard(boardCode, data) {
-  return request(`/games/${boardCode}/leaderboard/`, {
+  return request(`/game/${boardCode}/leaderboard/`, {
     method: 'POST',
     body: JSON.stringify(data),
   });

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createGameboard } from './api/client';
+import { createGameboard, submitLeaderboard } from './api/client';
 
 const CATEGORY_ORDER = ['movies', 'tv', 'music', 'celebrities', 'sports'];
 const VALUES = [200, 400, 600, 800, 1000];
@@ -107,6 +107,7 @@ function App() {
   const [elapsed, setElapsed] = useState(0);
   const startTimeRef = useRef(0);
   const timerRef = useRef(null);
+  const completedSubmittedRef = useRef(false);
 
   const boardCode = board?.board_code;
   const boardGroups = useMemo(() => buildBoard(board), [board]);
@@ -123,14 +124,26 @@ function App() {
   }, [screen]);
 
   useEffect(() => {
-    if (screen === 'game' && answeredCount === 25 && boardCode) {
+    if (screen === 'game' && answeredCount === 25 && boardCode && !completedSubmittedRef.current) {
       setFeedback({
         correct: true,
         reason: 'Board complete',
         message: 'You cleared the board.',
       });
+
+      (async () => {
+        try {
+          await submitLeaderboard(boardCode, { score, time_taken: elapsed });
+          completedSubmittedRef.current = true;
+        } catch (err) {
+          setFeedback((prev) => ({
+            ...prev,
+            message: `${prev?.message ?? ''} (leaderboard submit failed)`,
+          }));
+        }
+      })();
     }
-  }, [answeredCount, boardCode, screen]);
+  }, [answeredCount, boardCode, screen, score, elapsed]);
 
   async function startNewGame() {
     setLoading(true);
@@ -145,6 +158,7 @@ function App() {
       setSelectedQuestion(null);
       setFeedback(null);
       setElapsed(0);
+      completedSubmittedRef.current = false;
       startTimeRef.current = Date.now();
       setScreen('game');
     } catch (requestError) {
