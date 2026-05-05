@@ -1,47 +1,39 @@
-from __future__ import annotations
-
-from rest_framework import serializers
-
+from __future__ import annotations 
+from rest_framework import serializers 
 from .models import Gameboard, Leaderboard, LeaderboardEntry, Question, User 
-
-from django.contrib.auth import get_user_model
-# import the current User as well
+from django.contrib.auth import get_user_model # import the current User as well 
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
-		fields = ("id", "username", "email", "history")
-		read_only_fields = ("id", "username", "email", "history") # store email in order to use firebase auth
+		fields = ("id", "username", "email")
+		read_only_fields = ("id", "username", "email") 
 
 class LeaderboardEntrySerializer(serializers.ModelSerializer):
 	user = UserSerializer(read_only=True)
 	class Meta:
 		model = LeaderboardEntry
 		fields = (
-			"id",
-			"leaderboard",
 			"user",
-			"history",
 			"score",
-			"time_taken",
+ 			"time_taken",
 		)
-		read_only_fields = (
-			"id",
+	def create(self, data):
+		leaderboard_entry = LeaderboardEntry.objects.create(
+			user=User.objects.get(id=data['id']),
+			score=data['score'],
+			time_taken=data['time_taken']
 		)
-
+		return leaderboard_entry
 
 class LeaderboardSerializer(serializers.ModelSerializer):
-	entries = LeaderboardEntrySerializer(many=True, read_only=True)
+	leaderboard_entries = LeaderboardEntrySerializer(many=True, read_only=True)
 	class Meta:
 		model = Leaderboard
 		fields = (
-			"id",
 			"gameboard",
-			"entries",
-		)
-		read_only_fields = (
-			"id",
+			"leaderboard_entries",
 		)
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -62,7 +54,6 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class GameboardSerializer(serializers.ModelSerializer):
 	questions = QuestionSerializer(many=True, read_only=True)
-	leaderboard = LeaderboardSerializer(read_only=True)
 	
 	class Meta:
 		model = Gameboard
@@ -71,7 +62,6 @@ class GameboardSerializer(serializers.ModelSerializer):
 			"name",
 			"date_created",
 			"questions",
-			"leaderboard",
 		)
 		read_only_fields = (
 			"board_code",
