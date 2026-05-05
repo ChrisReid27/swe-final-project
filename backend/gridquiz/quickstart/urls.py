@@ -22,7 +22,7 @@ urlpatterns = [
 
 	# Get game by boardcode
 	# Example: GET /game/{boardcode}
-	path("game/<int:board_code>", GameboardByIdView.as_view(), name="gameboard_boardcode-detail"),
+	path("game/<int:board_code>/", GameboardByIdView.as_view(), name="gameboard_boardcode-detail"),
 
 	# Retrieve or submit leaderboard entries
 	# GET /games/{uuid}/leaderboard/

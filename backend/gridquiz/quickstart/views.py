@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -94,7 +95,7 @@ class GameboardByIdView(APIView):
 	GET /game/{board_code}
 	"""
 	def get(self, request, board_code):
-		gameboard = Gameboard.objects.get(board_code=board_code)
+		gameboard = get_object_or_404(Gameboard, board_code=board_code)
 		return Response(
 			GameboardSerializer(gameboard).data,
 			status=status.HTTP_200_OK
@@ -129,19 +130,23 @@ class LeaderboardView(APIView):
 			)
 			leaderboard.gameboard.add(gameboard)
 		
-		serializer = LeaderboardEntrySerializer(
-			data={**request.data, "leaderboard": str(leaderboard.id)},
-			context={"request": request},
-		)
+		payload = {**request.data, "leaderboard": str(leaderboard.id)}
+		serializer = LeaderboardEntrySerializer(data=payload, context={"request": request})
 		serializer.is_valid(raise_exception=True)
 
 		# find user
 		if request.user and request.user.is_authenticated:
 			user = request.user
 		else:
-			user_id = serializer.validated_data.pop("user_id")
+			user_id = request.data.get("user_id")
+			if not user_id:
+				return Response(
+					{"detail": "user_id is required when not authenticated."},
+					status=status.HTTP_400_BAD_REQUEST,
+				)
 			user = get_object_or_404(User, id=user_id)
 
+		time_taken = serializer.validated_data.get("time_taken", timedelta())
 		entry = LeaderboardEntry.objects.create(
 			leaderboard=leaderboard,
 			user=user,

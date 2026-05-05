@@ -40,17 +40,14 @@ class QuestionSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Question
 		fields = (
+			"id",
 			"category",
 			"value",
 			"question_text",
 			"answer_text",
+			"howard",
 		)
-		read_only_fields = (	
-			"category",
-			"value",
-			"question_text",
-			"answer_text",
-		)
+		read_only_fields = fields
 
 class GameboardSerializer(serializers.ModelSerializer):
 	questions = QuestionSerializer(many=True, read_only=True)
