@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createGameboard, submitLeaderboard } from './api/client';
+import { createGameboard, getLeaderboard, submitLeaderboard } from './api/client';
 
 const CATEGORY_ORDER = ['movies', 'tv', 'music', 'celebrities', 'sports'];
-const VALUES = [200, 400, 600, 800, 1000];
 
 function normalizeText(value) {
   return String(value ?? '')
@@ -87,6 +86,12 @@ function buildBoard(board) {
     }));
 }
 
+function buildQuestionValues(board) {
+  return Array.from(new Set((board?.questions ?? []).map((question) => question.value)))
+    .filter((value) => Number.isFinite(value))
+    .sort((left, right) => left - right);
+}
+
 function formatDuration(seconds) {
   const total = Math.max(0, Math.floor(seconds));
   const minutes = String(Math.floor(total / 60)).padStart(2, '0');
@@ -97,6 +102,8 @@ function formatDuration(seconds) {
 function App() {
   const [screen, setScreen] = useState('home');
   const [board, setBoard] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedQuestion, setSelectedQuestion] = useState(null);
@@ -111,7 +118,26 @@ function App() {
 
   const boardCode = board?.board_code;
   const boardGroups = useMemo(() => buildBoard(board), [board]);
+  const questionValues = useMemo(() => buildQuestionValues(board), [board]);
   const answeredCount = Object.keys(answered).length;
+  const totalQuestions = board?.questions?.length ?? 0;
+  const isBoardComplete = totalQuestions > 0 && answeredCount >= totalQuestions;
+
+  async function loadLeaderboard(boardIdentifier) {
+    if (!boardIdentifier) return;
+
+    setLeaderboardLoading(true);
+
+    try {
+      const result = await getLeaderboard(boardIdentifier);
+      setLeaderboard(result?.leaderboard_entries ?? []);
+    } catch (requestError) {
+      setLeaderboard([]);
+      setError(requestError.message || 'Unable to load leaderboard right now.');
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  }
 
   useEffect(() => {
     if (screen !== 'game' || !startTimeRef.current) return undefined;
@@ -124,7 +150,8 @@ function App() {
   }, [screen]);
 
   useEffect(() => {
-    if (screen === 'game' && answeredCount === 25 && boardCode && !completedSubmittedRef.current) {
+    if (screen === 'game' && isBoardComplete && boardCode && !completedSubmittedRef.current) {
+      completedSubmittedRef.current = true;
       setFeedback({
         correct: true,
         reason: 'Board complete',
@@ -134,7 +161,7 @@ function App() {
       (async () => {
         try {
           await submitLeaderboard(boardCode, { score, time_taken: elapsed });
-          completedSubmittedRef.current = true;
+          await loadLeaderboard(boardCode);
         } catch (err) {
           setFeedback((prev) => ({
             ...prev,
@@ -143,7 +170,12 @@ function App() {
         }
       })();
     }
-  }, [answeredCount, boardCode, screen, score, elapsed]);
+  }, [answeredCount, boardCode, elapsed, isBoardComplete, screen, score]);
+
+  useEffect(() => {
+    if (!boardCode) return;
+    loadLeaderboard(boardCode);
+  }, [boardCode]);
 
   async function startNewGame() {
     setLoading(true);
@@ -158,6 +190,7 @@ function App() {
       setSelectedQuestion(null);
       setFeedback(null);
       setElapsed(0);
+      setLeaderboard([]);
       completedSubmittedRef.current = false;
       startTimeRef.current = Date.now();
       setScreen('game');
@@ -224,9 +257,24 @@ function App() {
             <p>The board is fetched from Django and rendered into React state.</p>
           </div>
           <div className="info-card">
-            <span className="info-label">Current scope</span>
-            <strong>Board creation and play loop</strong>
-            <p>Leaderboard submission and auth wiring can be layered in next.</p>
+            <span className="info-label">Live leaderboard</span>
+            <strong>{boardCode ? `Board ${boardCode}` : 'Waiting for a board'}</strong>
+            {leaderboardLoading ? (
+              <p>Loading leaderboard...</p>
+            ) : leaderboard.length > 0 ? (
+              <div className="leaderboard-preview">
+                {leaderboard.slice(0, 3).map((entry, index) => (
+                  <div key={`${entry.user?.username ?? 'player'}-${index}`} className="leaderboard-preview-row">
+                    <span>
+                      {index + 1}. {entry.user?.username ?? 'Player'}
+                    </span>
+                    <span>${entry.score.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>Start a board to load the current leaderboard from Django.</p>
+            )}
           </div>
         </aside>
       </main>
@@ -251,7 +299,7 @@ function App() {
         {boardGroups.map(({ category, questions }) => (
           <div key={category} className="category-column">
             <div className="category-header">{titleize(category)}</div>
-            {VALUES.map((value) => {
+            {questionValues.map((value) => {
               const question = questions.find((item) => item.value === value);
               const questionId = question?.id ?? `${category}-${value}`;
               const isUsed = Boolean(answered[questionId]);
@@ -271,9 +319,38 @@ function App() {
         ))}
       </section>
 
+      <section className="leaderboard-panel">
+        <div className="leaderboard-panel__header">
+          <div>
+            <p className="eyebrow">Live leaderboard</p>
+            <h3>{boardCode ? `Board ${boardCode}` : 'Leaderboard unavailable'}</h3>
+          </div>
+          <span>{leaderboard.length} entries</span>
+        </div>
+        {leaderboardLoading ? (
+          <p className="leaderboard-empty">Loading leaderboard from Django...</p>
+        ) : leaderboard.length > 0 ? (
+          <div className="leaderboard-list">
+            {leaderboard.slice(0, 5).map((entry, index) => (
+              <div key={`${entry.user?.id ?? 'player'}-${index}`} className="leaderboard-row">
+                <span className="leaderboard-rank">{index + 1}</span>
+                <span className="leaderboard-user">
+                  <strong>{entry.user?.username ?? 'Player'}</strong>
+                  <small>{entry.user?.email ?? 'No email provided'}</small>
+                </span>
+                <span className="leaderboard-score">${entry.score.toLocaleString()}</span>
+                <span className="leaderboard-time">{formatDuration(entry.time_taken)}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="leaderboard-empty">No leaderboard entries yet for this board.</p>
+        )}
+      </section>
+
       <footer className="status-bar">
-        <span>{answeredCount}/25 answered</span>
-        {feedback ? <span>{feedback.reason}: {feedback.message}</span> : <span>Select a tile to play.</span>}
+        <span>{answeredCount}/{totalQuestions || 25} answered</span>
+        {feedback ? <span>{feedback.reason}: {feedback.message}</span> : isBoardComplete ? <span>Board complete. Score submitted to the backend.</span> : <span>Select a tile to play.</span>}
       </footer>
 
       {selectedQuestion ? (

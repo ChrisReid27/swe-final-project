@@ -163,6 +163,20 @@ button {
   gap: 16px;
 }
 
+.leaderboard-preview {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.leaderboard-preview-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
 .info-card {
   border-radius: 24px;
   padding: 24px;
@@ -205,6 +219,78 @@ button {
   display: grid;
   gap: 14px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.leaderboard-panel {
+  border-radius: 28px;
+  padding: 20px 22px;
+  display: grid;
+  gap: 14px;
+  backdrop-filter: blur(18px);
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--line);
+  box-shadow: 0 20px 45px rgba(11, 16, 32, 0.08);
+}
+
+.leaderboard-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+}
+
+.leaderboard-panel__header h3 {
+  margin: 6px 0 0;
+  font-size: 1.3rem;
+}
+
+.leaderboard-list {
+  display: grid;
+  gap: 10px;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(244, 239, 228, 0.7);
+}
+
+.leaderboard-rank {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #fff;
+  font-weight: 800;
+}
+
+.leaderboard-user {
+  display: grid;
+  gap: 2px;
+}
+
+.leaderboard-user strong {
+  font-size: 0.98rem;
+}
+
+.leaderboard-user small,
+.leaderboard-empty {
+  color: var(--muted);
+}
+
+.leaderboard-score,
+.leaderboard-time {
+  font-weight: 700;
+}
+
+.leaderboard-time {
+  color: var(--blue);
 }
 
 .category-column {
@@ -317,6 +403,16 @@ button {
   .board-panel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .leaderboard-panel__header,
+  .leaderboard-row {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .leaderboard-row {
+    gap: 8px;
+  }
 }
 
 @media (max-width: 720px) {
@@ -333,6 +429,10 @@ button {
   }
 
   .board-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderboard-row {
     grid-template-columns: 1fr;
   }
 

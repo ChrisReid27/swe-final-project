@@ -22,11 +22,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env_config("SECRET_KEY")
+LOGIN_REDIRECT_URL = env_config("LOGIN_REDIRECT_URL", default="/")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = env_config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = ['team-2-semester-project.vercel.app'] # use the website endpoint (I think this should work)
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in env_config(
+        "ALLOWED_HOSTS",
+        default="localhost,127.0.0.1,team-2-semester-project.vercel.app",
+    ).split(",")
+    if host.strip()
+]
 
 
 # Application definition
@@ -46,7 +54,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-	'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -84,6 +93,16 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Optionally override database via `DATABASE_URL` (e.g. Railway Postgres)
+try:
+    import dj_database_url
+except Exception:
+    dj_database_url = None
+
+DATABASE_URL = env_config('DATABASE_URL', default=None)
+if DATABASE_URL and dj_database_url:
+    DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
 
 
 # Password validation
@@ -127,4 +146,19 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Directory for `collectstatic` in production and WhiteNoise static serving
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Use WhiteNoise to serve compressed static files in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 CORS_ALLOW_ALL_ORIGINS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in env_config(
+        "CSRF_TRUSTED_ORIGINS",
+        default="http://localhost:5173,http://127.0.0.1:5173,https://team-2-semester-project.vercel.app",
+    ).split(",")
+    if origin.strip()
+]
