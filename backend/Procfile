@@ -1,1 +1,1 @@
-web: gunicorn gridquiz.wsgi --log-file -
+web: gunicorn gridquiz.wsgi --bind 0.0.0.0:$PORT --log-file -
