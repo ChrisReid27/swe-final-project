@@ -21,8 +21,8 @@ Quick deploy checklist
 		 - `CSRF_TRUSTED_ORIGINS` — include your frontend origin (e.g. `https://<your-vercel-app>.vercel.app`)
 		 - `DATABASE_URL` — provided by Railway Postgres (or your DB provider)
 3. Ensure the host uses Python and installs from `requirements.txt`.
-4. The default start command is provided by `Procfile`: `web: gunicorn gridquiz.wsgi --log-file -`.
-5. Run migrations on the host. Railway provides a console or you can run:
+4. The default start command is provided by `Procfile`, which now runs migrations before starting the app: `web: python manage.py migrate --noinput && gunicorn gridquiz.wsgi --bind 0.0.0.0:$PORT --log-file -`.
+5. If your host does not honor the `Procfile`, make sure migrations run on startup or run them manually on the host. Railway provides a console or you can run:
 
 ```
 railway run python manage.py migrate
