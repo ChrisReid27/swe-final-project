@@ -40,8 +40,8 @@ DEFAULT_QUESTION_DATA = [
 	{
 		"category": "music",
 		"value": 200,
-		"question_text": "This Howard special music question points to an album by Beyoncé.",
-		"answer_text": "Renaissance",
+		"question_text": "This Howard special music question is about a singer, songwriter, and pianist who attended the school at just 15 years old.",
+		"answer_text": "Roberta Flack",
 		"howard": True,
 	},
 	{
@@ -75,8 +75,8 @@ DEFAULT_QUESTION_DATA = [
 	{
 		"category": "sports",
 		"value": 200,
-		"question_text": "This Howard special sports question is about a legendary NBA player who wore 23.",
-		"answer_text": "Michael Jordan",
+		"question_text": "This Howard special sports question is about the animal mascot that represents the school and it's sports teams.",
+		"answer_text": "Bison",
 		"howard": True,
 	},
 	{
@@ -110,8 +110,8 @@ DEFAULT_QUESTION_DATA = [
 	{
 		"category": "tv",
 		"value": 200,
-		"question_text": "This Howard special TV question is about a sitcom set in Harlem.",
-		"answer_text": "A Different World",
+		"question_text": "This Howard special TV question is about a sitcom that aired on ABC starring alumnus Anthony Anderson.",
+		"answer_text": "Black-ish",
 		"howard": True,
 	},
 	{
@@ -173,7 +173,7 @@ DEFAULT_QUESTION_DATA = [
 	{
 		"category": "celebrities",
 		"value": 1000,
-		"question_text": "This entrepreneur founded SpaceX and Tesla.",
+		"question_text": "This controversial entrepreneur founded SpaceX and Tesla.",
 		"answer_text": "Elon Musk",
 		"howard": False,
 	},
