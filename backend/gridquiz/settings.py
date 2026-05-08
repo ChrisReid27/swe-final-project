@@ -154,7 +154,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
-  "https://swe-final-project-sepia.vercel.app/",
+  "https://swe-final-project-sepia.vercel.app",
   "http://localhost:5173"
 ]
 CORS_ALLOW_CREDENTIALS = True
@@ -163,7 +163,7 @@ CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in env_config(
         "CSRF_TRUSTED_ORIGINS",
-        default="http://localhost:5173,http://127.0.0.1:5173,https://team-2-semester-project.vercel.app",
+        default="http://localhost:5173,http://127.0.0.1:5173,https://team-2-semester-project.vercel.app,https://swe-final-project-sepia.vercel.app",
     ).split(",")
     if origin.strip()
 ]
