@@ -19,10 +19,28 @@ class Migration(migrations.Migration):
             name='gameboard',
             field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='leaderboard', to='quickstart.gameboard'),
         ),
-        migrations.AlterField(
-            model_name='leaderboardentry',
-            name='time_taken',
-            field=models.IntegerField(),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql=(
+                        "ALTER TABLE quickstart_leaderboardentry "
+                        "ALTER COLUMN time_taken TYPE integer "
+                        "USING EXTRACT(EPOCH FROM time_taken)::integer"
+                    ),
+                    reverse_sql=(
+                        "ALTER TABLE quickstart_leaderboardentry "
+                        "ALTER COLUMN time_taken TYPE interval "
+                        "USING make_interval(secs => time_taken)"
+                    ),
+                ),
+            ],
+            state_operations=[
+                migrations.AlterField(
+                    model_name='leaderboardentry',
+                    name='time_taken',
+                    field=models.IntegerField(),
+                ),
+            ],
         ),
         migrations.AlterField(
             model_name='question',
