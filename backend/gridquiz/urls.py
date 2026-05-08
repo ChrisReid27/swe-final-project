@@ -16,8 +16,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import HttpResponse
+
+
+def _root(request):
+    return HttpResponse("Backend is running")
 
 urlpatterns = [
+    path('', _root),
     path('admin/', admin.site.urls),
 	path('api/', include('gridquiz.quickstart.urls')),
 	path('api/accounts/', include('accounts.urls')),

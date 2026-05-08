@@ -31,7 +31,7 @@ ALLOWED_HOSTS = [
     host.strip()
     for host in env_config(
         "ALLOWED_HOSTS",
-        default="localhost,127.0.0.1,team-2-semester-project.vercel.app",
+        default="localhost,127.0.0.1,team-2-semester-project.vercel.app,swe-final-project-production.up.railway.app",
     ).split(",")
     if host.strip()
 ]
