@@ -13,11 +13,9 @@ from gridquiz.quickstart.models import Question
 from gridquiz.quickstart.default_questions import DEFAULT_QUESTION_DATA
 
 def sync_defaults():
-    before = Question.objects.count()
-    for q in DEFAULT_QUESTION_DATA:
-        Question.objects.update_or_create(question_text=q['question_text'], defaults=q)
-    after = Question.objects.count()
-    print(f"Synced default questions. Before: {before}, After: {after}")
+    Question.objects.all().delete()
+    Question.objects.bulk_create([Question(**q) for q in DEFAULT_QUESTION_DATA])
+    print(f"Reseeded {len(DEFAULT_QUESTION_DATA)} default questions")
 
 if __name__ == '__main__':
     sync_defaults()
