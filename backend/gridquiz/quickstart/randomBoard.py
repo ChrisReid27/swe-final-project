@@ -6,12 +6,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def _pick_random(bucket, bucket_name):
+	if not bucket:
+		raise ValueError(f'No questions available for {bucket_name}.')
+	return random.choice(bucket)
+
 def chooseRandomFive(listoflists):
 	# first choose a howard related question
 	skip = 0
 	returnlist = [0, 0, 0, 0, 0]
 	
-	howard_question = random.choice(listoflists[5])
+	howard_question = _pick_random(listoflists[5], 'Howard bucket')
 	val = howard_question[0]
 	returnlist[val] = howard_question[1]
 
@@ -19,7 +24,7 @@ def chooseRandomFive(listoflists):
 		if(i == val):
 			continue
 		else:
-			question = random.choice(listoflists[i])
+			question = _pick_random(listoflists[i], f'value bucket {i + 1}')
 			returnlist[i] = question
 	
 	return returnlist

@@ -25,6 +25,7 @@ User = get_user_model()
 
 # import other scripts
 from .randomBoard import *
+from .default_questions import seed_default_questions
 
 import uuid
 
@@ -41,6 +42,7 @@ class CreateGameboardView(APIView):
 	def get(self, request):
 		try:
 			with transaction.atomic():
+				seed_default_questions()
 
 				questions = Question.objects.all()
 				board = createNewBoard(questions)
